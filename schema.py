@@ -23,6 +23,18 @@ class Query(graphene.ObjectType):
     # Disable sorting over this field
     all_departments = SQLAlchemyConnectionField(DepartmentObject, sort=None)
 
+class CreateDepartment(graphene.Mutation):
+    class Arguments:
+        name = graphene.String()
+
+    department = graphene.Field(lambda: DepartmentObject)
+
+    def mutate(root, info, name):
+        department = Department(name=name)
+        db_session.add(department)
+        db_session.commit()
+        return CreateDepartment(department=department)
+
 class CreateEmployee(graphene.Mutation):
     class Arguments:
         name_d = graphene.String(required=True)
@@ -41,5 +53,6 @@ class CreateEmployee(graphene.Mutation):
 
 class Mutation(graphene.ObjectType):
     create_employee = CreateEmployee.Field()
+    create_department = CreateDepartment.Field()
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
